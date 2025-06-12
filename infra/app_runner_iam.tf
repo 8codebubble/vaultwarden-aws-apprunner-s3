@@ -17,3 +17,8 @@ resource "aws_iam_role_policy_attachment" "vaultwarden_s3_attach" {
   role       = aws_iam_role.vaultwarden_apprunner_role.name
   policy_arn = aws_iam_policy.vaultwarden_s3_access.arn
 }
+
+resource "aws_iam_role_policy_attachment" "apprunner_ecr_access" {
+  role       = aws_iam_role.vaultwarden_apprunner_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+}
