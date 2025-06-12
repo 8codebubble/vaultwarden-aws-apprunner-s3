@@ -1,0 +1,106 @@
+name: Deploy Vaultwarden with Litestream
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download Web Vault for Vaultwarden
+        run: |
+          # Get the browser download URL for the latest web-vault tarball asset from bw_web_builds
+          WEB_VAULT_URL=$(curl -s "https://api.github.com/repos/dani-garcia/bw_web_builds/releases/latest" | \
+            jq -r '.assets[] | select(.name | endswith("tar.gz")) | .browser_download_url')
+          echo "Downloading Web Vault from: $WEB_VAULT_URL"
+          # Download the tarball
+          curl -L "$WEB_VAULT_URL" -o web-vault.tar.gz
+          # Create a directory for the extracted web vault
+          mkdir -p web-vault
+          # Extract the tarball into the created directory.
+          tar -xzvf web-vault.tar.gz -C web-vault
+          pwd
+          ls -la
+          ls ./web-vault/ -la
+            
+      - name: Download latest Vaultwarden release
+        run: |
+          VAULTWARDEN_URL=$(curl -s https://api.github.com/repos/dani-garcia/vaultwarden/releases/latest | jq -r '.zipball_url')
+          curl -L $VAULTWARDEN_URL -o vaultwarden.zip
+          unzip vaultwarden.zip -d vaultwarden
+          pwd
+          ls -la
+          ls ./vaultwarden/ -la
+
+      - name: Generate Litestream configuration
+        run: |
+          cat <<EOF > litestream.yml
+          dbs:
+            - path: /tmp/vaultwarden/data/db.sqlite3
+              replicas:
+                - type: s3
+                  bucket: "${{ vars.LITESTREAM_BUCKET }}"
+                  path: db.sqlite3
+                  endpoint: "${{ vars.LITESTREAM_ENDPOINT }}"
+          EOF
+
+      - name: Build Docker image
+        run: |
+          docker build -t vaultwarden-lambda-s3-storage .
+
+      - name: Tag Image for DockerHub
+        run: |
+          docker tag vaultwarden-lambda-s3-storage:latest ${{ secrets.DOCKERHUB_USERNAME }}/vaultwarden-aws-apprunner-s3:latest
+
+      - name: Push to DockerHub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/vaultwarden-aws-apprunner-s3:latest
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Tag and Push Image to AWS ECR
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REPOSITORY: vaultwarden-lambda-s3-storage
+        run: |
+          ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          # Tag the image for ECR
+          docker tag vaultwarden-lambda-s3-storage:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          # Push the image to ECR
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+
+      - name: Update Lambda function
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REPOSITORY: vaultwarden-lambda-s3-storage
+        run: |
+          ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+          aws lambda update-function-code --function-name vaultwarden --image-uri ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          # Update the environment variables of the lambda function.
+          echo "Waiting for function update to complete..."
+          aws lambda wait function-updated --function-name vaultwarden
+          echo "Function update completed."
+          # Adjust the key-value pairs as needed.
+          aws lambda update-function-configuration \
+            --function-name vaultwarden \
+            --environment "Variables={DATA_FOLDER=${{ vars.VAULTWARDEN_DATA_FOLDER }},ADMIN_TOKEN=${{ secrets.VAULTWARDEN_ADMIN_TOKEN }}}"
