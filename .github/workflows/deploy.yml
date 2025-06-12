@@ -45,7 +45,7 @@ jobs:
         run: |
           cat <<EOF > litestream.yml
           dbs:
-            - path: ${{ VAULTWARDEN_DATA_FOLDER }}/db.sqlite3
+            - path: ${{ vars.VAULTWARDEN_DATA_FOLDER }}/db.sqlite3
               replicas:
                 - type: s3
                   bucket: "${{ vars.LITESTREAM_BUCKET }}"
