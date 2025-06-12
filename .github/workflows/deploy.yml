@@ -45,7 +45,7 @@ jobs:
         run: |
           cat <<EOF > litestream.yml
           dbs:
-            - path: /tmp/vaultwarden/data/db.sqlite3
+            - path: ${{ VAULTWARDEN_DATA_FOLDER }}/db.sqlite3
               replicas:
                 - type: s3
                   bucket: "${{ vars.LITESTREAM_BUCKET }}"
@@ -94,4 +94,4 @@ jobs:
           ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:latest
         run: |
           aws apprunner update-service --service-arn $(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn" --output text) \
-            --source-configuration ImageRepository="{ImageIdentifier=\"$ECR_IMAGE_URI\",ImageRepositoryType=\"ECR\"}"      
+            --source-configuration ImageRepository="{ImageIdentifier=\"$ECR_IMAGE_URI\",ImageRepositoryType=\"ECR\"}"

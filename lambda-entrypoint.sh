@@ -11,8 +11,6 @@ mkdir -p $DATA_FOLDER
 litestream restore -if-replica-exists ${DATA_FOLDER}/db.sqlite3 &
 LITESTREAM_PID=$!
 
-
-
 # Start Litestream in background for continuous replication
 litestream replicate -config /etc/litestream.yml &
 

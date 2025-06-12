@@ -1,4 +1,4 @@
-resource "aws_iam_role" "vaultwarden_apprunner_role" {
+resource "aws_iam_role" "apprunner_execution_role" {
   name = "vaultwarden-apprunner-role"
 
   assume_role_policy = jsonencode({
@@ -7,18 +7,59 @@ resource "aws_iam_role" "vaultwarden_apprunner_role" {
       Effect = "Allow",
       Principal = {
         Service = "tasks.apprunner.amazonaws.com"
+        Service = "build.apprunner.amazonaws.com"
       },
       Action = "sts:AssumeRole"
     }]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "vaultwarden_s3_attach" {
-  role       = aws_iam_role.vaultwarden_apprunner_role.name
-  policy_arn = aws_iam_policy.vaultwarden_s3_access.arn
+# Attach ECR access policy (Updated with correct permissions)
+resource "aws_iam_policy" "apprunner_ecr_pull_policy" {
+  name        = "apprunner-ecr-pull-policy"
+  description = "Allows App Runner to pull images from ECR"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = [
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:DescribeImages",
+        "ecr:GetAuthorizationToken"
+      ],
+      Resource = "*"
+    }]
+  })
 }
 
-resource "aws_iam_role_policy_attachment" "apprunner_ecr_access" {
-  role       = aws_iam_role.vaultwarden_apprunner_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess"
+# Attach S3 access policy for Vaultwarden
+resource "aws_iam_policy" "vaultwarden_s3_access" {
+  name        = "vaultwarden-s3-access-policy"
+  description = "Allows App Runner to access S3 bucket"
+  
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+      Resource = [
+        aws_s3_bucket.vaultwarden_s3.arn,
+        "${aws_s3_bucket.vaultwarden_s3.arn}/*"
+      ]
+    }]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "apprunner_ecr_pull_policy_attach" {
+  role       = aws_iam_role.apprunner_execution_role.name
+  policy_arn = aws_iam_policy.apprunner_ecr_pull_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "vaultwarden_s3_attach" {
+  role       = aws_iam_role.apprunner_execution_role.name
+  policy_arn = aws_iam_policy.vaultwarden_s3_access.arn
 }
