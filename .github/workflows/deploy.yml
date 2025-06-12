@@ -55,11 +55,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t vaultwarden-lambda-s3-storage .
+          docker build -t vaultwarden-aws-apprunner-s3 .
 
       - name: Tag Image for DockerHub
         run: |
-          docker tag vaultwarden-lambda-s3-storage:latest ${{ secrets.DOCKERHUB_USERNAME }}/vaultwarden-aws-apprunner-s3:latest
+          docker tag vaultwarden-aws-apprunner-s3:latest ${{ secrets.DOCKERHUB_USERNAME }}/vaultwarden-aws-apprunner-s3:latest
 
       - name: Push to DockerHub
         run: |
@@ -80,27 +80,18 @@ jobs:
         env:
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          ECR_REPOSITORY: vaultwarden-lambda-s3-storage
+          ECR_REPOSITORY: vaultwarden-aws-apprunner-s3
         run: |
           ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
           # Tag the image for ECR
-          docker tag vaultwarden-lambda-s3-storage:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          docker tag vaultwarden-aws-apprunner-s3:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
           # Push the image to ECR
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
 
-      - name: Update Lambda function
+      - name: Manually Update App Runner Service
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          ECR_REPOSITORY: vaultwarden-lambda-s3-storage
+          SERVICE_NAME: vaultwarden-apprunner
+          ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:latest
         run: |
-          ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-          aws lambda update-function-code --function-name vaultwarden --image-uri ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
-          # Update the environment variables of the lambda function.
-          echo "Waiting for function update to complete..."
-          aws lambda wait function-updated --function-name vaultwarden
-          echo "Function update completed."
-          # Adjust the key-value pairs as needed.
-          aws lambda update-function-configuration \
-            --function-name vaultwarden \
-            --environment "Variables={DATA_FOLDER=${{ vars.VAULTWARDEN_DATA_FOLDER }},ADMIN_TOKEN=${{ secrets.VAULTWARDEN_ADMIN_TOKEN }}}"
+          aws apprunner update-service --service-arn $(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn" --output text) \
+            --source-configuration ImageRepository="{ImageIdentifier=\"$ECR_IMAGE_URI\",ImageRepositoryType=\"ECR\"}"      
