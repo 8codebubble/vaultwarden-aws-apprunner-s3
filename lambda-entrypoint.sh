@@ -8,11 +8,11 @@ echo "Starting Vaultwarden Lambda container..."
 mkdir -p $DATA_FOLDER
 
 # Restore SQLite database from S3 if available
-litestream restore -if-replica-exists ${DATA_FOLDER}/db.sqlite3 &
+#litestream restore -if-replica-exists ${DATA_FOLDER}/db.sqlite3 &
 LITESTREAM_PID=$!
 
 # Start Litestream in background for continuous replication
-litestream replicate -config /etc/litestream.yml &
+#litestream replicate -config /etc/litestream.yml &
 
 # Sanitiy check
 pwd
