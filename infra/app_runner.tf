@@ -7,9 +7,15 @@ resource "aws_apprunner_service" "vaultwarden" {
         port = "8080"  # Port that the application listens on
         runtime_environment_variables = {
           ROCKET_PORT = "8080"
+          ROCKET_ADDRESS = "0.0.0.0"
           #DATABASE_URL = "postgres://user:password@db.example.com:5432/vaultwarden"
           ADMIN_TOKEN = "khjgasdhjgrew"
-          DATA_FOLDER = "/tmp/vaultwarden/data"
+          DATA_FOLDER = "/tmp/vaultwarden/data"          
+        }
+        # Secrets from AWS credentials
+        runtime_environment_secrets = {
+          AWS_ACCESS_KEY_ID     = aws_secretsmanager_secret.vaultwarden_s3_user_access_key_id.arn
+          AWS_SECRET_ACCESS_KEY = aws_secretsmanager_secret.vaultwarden_s3_user_secret_access_key.arn
         }
 
       }
@@ -26,7 +32,8 @@ resource "aws_apprunner_service" "vaultwarden" {
   
   instance_configuration {
     cpu    = "0.5 vCPU"
-    memory = "1 GB"    
+    memory = "1 GB"
+    instance_role_arn = aws_iam_role.apprunner_execution_role.arn     
     
   }
   # Define health check configuration    
