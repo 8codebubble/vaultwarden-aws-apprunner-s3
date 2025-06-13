@@ -35,6 +35,7 @@ FROM amazonlinux:2
 # Setting this in github actions instead #ENV DATA_FOLDER="/tmp/vaultwarden/data"
 
 # Sets the port for the Rocket web framework
+ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8080
 
 # Install dependencies using yum
