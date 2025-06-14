@@ -45,7 +45,9 @@ jobs:
           echo "VW_ROOT_PATH = ${VW_ROOT_PATH}" && \
           cd ${VW_ROOT_PATH} && \
           echo "Currently in $(pwd)" && \
-          mv * /src/vaultwarden && \          
+          mv * /src/vaultwarden && \
+          cd /src/vaultwarden && \
+          echo "Now in $(pwd)" && \ 
           cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu --features sqlite
 
       - name: Package Vaultwarden as tar file
