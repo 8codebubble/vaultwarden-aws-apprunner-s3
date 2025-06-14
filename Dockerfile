@@ -82,9 +82,6 @@ COPY web-vault /vaultwarden/
 # Copy Litestream config
 COPY litestream.yml /etc/litestream.yml
 
-COPY /root/.config/rclone/rclone.conf
-
-
 # Expose Vaultwarden API port
 EXPOSE 8080
 
