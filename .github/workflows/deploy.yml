@@ -98,8 +98,13 @@ jobs:
       - name: Deploy Versioned Image to App Runner
         env:
           SERVICE_NAME: vaultwarden-apprunner
-          ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:${GIT_SHORT_SHA}
+          ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:${{ env.GIT_SHORT_SHA }}
         run: |
           SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn" --output text)
-          aws apprunner update-service --service-arn "$SERVICE_ARN" \
-            --source-configuration ImageRepository="{ImageIdentifier=\"$ECR_IMAGE_URI\",ImageRepositoryType=\"ECR\"}"
+          aws apprunner update-service --service-arn "$SERVICE_ARN" --source-configuration '{ 
+            "ImageRepository": { 
+              "ImageIdentifier": "'"${ECR_IMAGE_URI}"'", 
+              "ImageRepositoryType": "ECR" 
+            } 
+          }'
+

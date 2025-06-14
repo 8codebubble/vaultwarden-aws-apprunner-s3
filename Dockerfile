@@ -39,7 +39,17 @@ ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8080
 
 # Install dependencies using yum
-RUN yum install -y tar sqlite curl ca-certificates jq gzip openssl11-libs && yum clean all
+RUN yum install -y tar sqlite curl ca-certificates jq gzip openssl11-libs cron curl unzip && yum clean all
+
+
+
+# Install rclone
+RUN curl https://rclone.org/install.sh | bash
+# Create rclone config directory
+RUN mkdir -p /root/.config/rclone
+# Copy rclone config file (ensure you have rclone.conf in your project)
+COPY rclone.conf /root/.config/rclone/rclone.conf
+
 
 # Use the GitHub API to get the download URL for the latest release asset
 # that ends with "litestream-linux-amd64.zip".
@@ -71,6 +81,9 @@ COPY web-vault /vaultwarden/
 
 # Copy Litestream config
 COPY litestream.yml /etc/litestream.yml
+
+COPY /root/.config/rclone/rclone.conf
+
 
 # Expose Vaultwarden API port
 EXPOSE 8080
