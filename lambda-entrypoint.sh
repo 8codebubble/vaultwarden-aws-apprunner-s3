@@ -25,6 +25,7 @@ ls -la ${DATA_FOLDER}
 echo "Creating cron job for s3 sync"
 #(crontab -l 2>/dev/null; echo "*/10 * * * * rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude \"*.sqlite*\"") | crontab -
 rclone_sync.sh &
+RCLONE_PID=$!
 
 
 # Restore SQLite database from S3 if available
@@ -57,7 +58,9 @@ function shutdown() {
   # Sync the data folder to S3, excluding SQLite files
   # This ensures that the latest state of the data folder is saved.
   # Note: This will not include the SQLite database file, as it is handled by Litestream.
-  rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude "*.sqlite*"  --exclude "*.sqlite3/"
+  kill -SIGTERM $RCLONE_PID
+  wait $RCLONE_PID
+  rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude "*.sqlite*" --exclude "*.sqlite3/"
 
   echo "Stopping Litestream..."
   kill -SIGTERM $LITESTREAM_PID
