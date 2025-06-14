@@ -84,7 +84,7 @@ COPY litestream.yml /etc/litestream.yml
 
 # Copy rclone sync script
 # Note: This script will run in the background to sync data to S3
-COPY rclone_sync.sh /rclone_sync.sh
+COPY rclone_sync.sh ./rclone_sync.sh
 RUN chmod +x /rclone_sync.sh
 
 # Expose Vaultwarden API port

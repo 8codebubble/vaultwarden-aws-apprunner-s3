@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 # Ensure the data folder exists
 while true; do
   rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude "*.sqlite*"
