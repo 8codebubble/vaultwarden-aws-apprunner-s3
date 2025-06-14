@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Sanity check
+pwd
+ls -la
+
 # AWS Lambda runtime requires initialization
 echo "Starting Vaultwarden Lambda container..."
 
@@ -26,7 +30,7 @@ ls -la ${DATA_FOLDER}
 # Create sync cron job to sync data to S3 every 10 minutes
 echo "Creating cron job for s3 sync"
 #(crontab -l 2>/dev/null; echo "*/10 * * * * rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude \"*.sqlite*\"") | crontab -
-rclone_sync.sh &
+/rclone_sync.sh &
 RCLONE_PID=$!
 
 
@@ -45,9 +49,6 @@ wait $LITESTREAM_PID
 # Start Litestream in background for continuous replication
 litestream replicate -config /etc/litestream.yml &
 
-# Sanity check
-pwd
-ls -la
 
 # Start Vaultwarden as a background process (or in the foreground if it supports a graceful shutdown signal)
 /vaultwarden/vaultwarden &
