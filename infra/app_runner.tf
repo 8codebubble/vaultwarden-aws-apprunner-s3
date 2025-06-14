@@ -32,7 +32,7 @@ resource "aws_apprunner_service" "vaultwarden" {
   
   instance_configuration {
     cpu    = "0.25 vCPU"
-    memory = "1 GB"
+    memory = "512 MB"
     instance_role_arn = aws_iam_role.apprunner_execution_role.arn     
     
   }

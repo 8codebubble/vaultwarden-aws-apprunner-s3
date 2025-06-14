@@ -14,7 +14,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3      
+
+      - name: Get Git Commit SHA for Versioning
+        run: echo "GIT_SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Download Web Vault for Vaultwarden
         run: |
@@ -83,15 +86,20 @@ jobs:
           ECR_REPOSITORY: vaultwarden-aws-apprunner-s3
         run: |
           ECR_REGISTRY=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-          # Tag the image for ECR
+          
+          # Tag image with latest & versioned SHA
           docker tag vaultwarden-aws-apprunner-s3:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
-          # Push the image to ECR
+          docker tag vaultwarden-aws-apprunner-s3:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:${GIT_SHORT_SHA}
+          
+          # Push both tags
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${GIT_SHORT_SHA}
 
-      - name: Manually Update App Runner Service
+      - name: Deploy Versioned Image to App Runner
         env:
           SERVICE_NAME: vaultwarden-apprunner
-          ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:latest
+          ECR_IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/vaultwarden-aws-apprunner-s3:${GIT_SHORT_SHA}
         run: |
-          aws apprunner update-service --service-arn $(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn" --output text) \
+          SERVICE_ARN=$(aws apprunner list-services --query "ServiceSummaryList[?ServiceName=='$SERVICE_NAME'].ServiceArn" --output text)
+          aws apprunner update-service --service-arn "$SERVICE_ARN" \
             --source-configuration ImageRepository="{ImageIdentifier=\"$ECR_IMAGE_URI\",ImageRepositoryType=\"ECR\"}"
