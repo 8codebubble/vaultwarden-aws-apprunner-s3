@@ -3,7 +3,7 @@ name: Deploy Vaultwarden with Litestream
 on:
   push:
     branches:
-      - mains
+      - main
 
 jobs:
   deploy:
