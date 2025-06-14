@@ -16,7 +16,7 @@ fi
 
 # Restore non-SQLite files from S3
 echo "Restoring non-SQLite files from S3..."
-rclone sync s3remote:vaultwarden-aws-apprunner-s3-bucket ${DATA_FOLDER} --exclude "*.sqlite*"
+rclone sync s3remote:vaultwarden-aws-apprunner-s3-bucket ${DATA_FOLDER} --exclude "*.sqlite*" --exclude "*.sqlite3/"
 
 # Ensure the data directory is writable
 ls -la ${DATA_FOLDER}
@@ -57,7 +57,7 @@ function shutdown() {
   # Sync the data folder to S3, excluding SQLite files
   # This ensures that the latest state of the data folder is saved.
   # Note: This will not include the SQLite database file, as it is handled by Litestream.
-  rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude "*.sqlite*"
+  rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude "*.sqlite*"  --exclude "*.sqlite3/"
 
   echo "Stopping Litestream..."
   kill -SIGTERM $LITESTREAM_PID
