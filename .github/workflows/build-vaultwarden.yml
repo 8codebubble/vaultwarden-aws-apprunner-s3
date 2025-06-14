@@ -39,6 +39,8 @@ jobs:
       - name: Build Vaultwarden
         working-directory: vaultwarden
         run: |
+          pwd
+          ls -la
           cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu --features sqlite
 
       - name: Package Vaultwarden as tar file
