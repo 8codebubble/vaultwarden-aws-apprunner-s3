@@ -1,0 +1,43 @@
+name: Build Vaultwarden for x86 & ARM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust toolchain
+        run: |
+          rustup update
+          rustup target add ${{ matrix.arch }}-unknown-linux-gnu
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-${{ matrix.arch }}-linux-gnu
+
+      - name: Build Vaultwarden
+        run: |
+          cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu
+
+      - name: Package Vaultwarden as tar file
+        run: |
+          mkdir -p vaultwarden-${{ matrix.arch }}
+          cp target/${{ matrix.arch }}-unknown-linux-gnu/release/vaultwarden vaultwarden-${{ matrix.arch }}/
+          tar -czvf vaultwarden-${{ matrix.arch }}.tar.gz vaultwarden-${{ matrix.arch }}
+
+      - name: Upload Vaultwarden tar file as GitHub Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: vaultwarden-${{ matrix.arch }}
+          path: vaultwarden-${{ matrix.arch }}.tar.gz

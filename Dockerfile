@@ -39,7 +39,7 @@ ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8080
 
 # Install dependencies using yum
-RUN yum install -y tar sqlite curl ca-certificates jq gzip openssl11-libs cron curl unzip && yum clean all
+RUN yum install -y tar sqlite curl ca-certificates jq gzip openssl11-libs curl unzip && yum clean all
 
 
 
@@ -81,6 +81,11 @@ COPY web-vault /vaultwarden/
 
 # Copy Litestream config
 COPY litestream.yml /etc/litestream.yml
+
+# Copy rclone sync script
+# Note: This script will run in the background to sync data to S3
+COPY rclone_sync.sh /rclone_sync.sh
+RUN chmod +x /rclone_sync.sh
 
 # Expose Vaultwarden API port
 EXPOSE 8080

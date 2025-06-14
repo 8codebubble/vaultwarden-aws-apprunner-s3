@@ -23,7 +23,8 @@ ls -la ${DATA_FOLDER}
 
 # Create sync cron job to sync data to S3 every 10 minutes
 echo "Creating cron job for s3 sync"
-(crontab -l 2>/dev/null; echo "*/10 * * * * rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude \"*.sqlite*\"") | crontab -
+#(crontab -l 2>/dev/null; echo "*/10 * * * * rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude \"*.sqlite*\"") | crontab -
+rclone_sync.sh &
 
 
 # Restore SQLite database from S3 if available
