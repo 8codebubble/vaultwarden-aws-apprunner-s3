@@ -45,13 +45,13 @@ jobs:
           echo "VW_ROOT_PATH = ${VW_ROOT_PATH}" && \
           cd ${VW_ROOT_PATH} && \
           echo "Currently in $(pwd)" && \
-          mv * ./ && \
+          mv * /src/vaultwarden && \          
           cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu --features sqlite
 
       - name: Package Vaultwarden as tar file
         run: |
           mkdir -p vaultwarden-${{ matrix.arch }}
-          cp target/${{ matrix.arch }}-unknown-linux-gnu/release/vaultwarden vaultwarden-${{ matrix.arch }}/
+          cp /src/vaultwarden/target/${{ matrix.arch }}-unknown-linux-gnu/release/vaultwarden vaultwarden-${{ matrix.arch }}/
           tar -czvf vaultwarden-${{ matrix.arch }}.tar.gz vaultwarden-${{ matrix.arch }}
 
       - name: Upload Vaultwarden tar file as GitHub Artifact
