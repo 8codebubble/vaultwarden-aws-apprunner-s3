@@ -11,8 +11,14 @@ jobs:
         arch: [x86_64, aarch64]
     
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Download latest Vaultwarden release
+        run: |
+          VAULTWARDEN_URL=$(curl -s https://api.github.com/repos/dani-garcia/vaultwarden/releases/latest | jq -r '.zipball_url')
+          curl -L $VAULTWARDEN_URL -o vaultwarden.zip
+          unzip vaultwarden.zip -d ./
+          pwd
+          ls -la
+          #ls ./vaultwarden/ -la
 
       - name: Install Rust toolchain
         run: |
@@ -23,10 +29,12 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y gcc-${{ matrix.arch }}-linux-gnu
+    
+      
 
       - name: Build Vaultwarden
         run: |
-          cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu
+          cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu --features sqlite
 
       - name: Package Vaultwarden as tar file
         run: |
