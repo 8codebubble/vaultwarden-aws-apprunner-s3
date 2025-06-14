@@ -15,7 +15,7 @@ jobs:
         run: |
           VAULTWARDEN_URL=$(curl -s https://api.github.com/repos/dani-garcia/vaultwarden/releases/latest | jq -r '.zipball_url')
           curl -L $VAULTWARDEN_URL -o vaultwarden.zip
-          unzip vaultwarden.zip -d ./
+          unzip vaultwarden.zip -d vaultwarden
           pwd
           ls -la
           #ls ./vaultwarden/ -la
@@ -37,6 +37,7 @@ jobs:
       
 
       - name: Build Vaultwarden
+        working-directory: vaultwarden
         run: |
           cargo build --release --target ${{ matrix.arch }}-unknown-linux-gnu --features sqlite
 
