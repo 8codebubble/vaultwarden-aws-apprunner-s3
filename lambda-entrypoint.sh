@@ -38,8 +38,7 @@ LITESTREAM_PID=$!
 
 echo "Waiting for Litestream restore to complete..."
 wait $LITESTREAM_PID
-# Ensure the SQLite database is writable
-chmod 644 ${DATA_FOLDER}/db.sqlite3
+
 # Ensure the SQLite database is owned by the correct user
 #chown root:root ${DATA_FOLDER}/db.sqlite3
 
