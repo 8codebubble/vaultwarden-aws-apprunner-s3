@@ -28,7 +28,11 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y gcc-${{ matrix.arch }}-linux-gnu
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            sudo apt install -y gcc-multilib
+          elif [ "${{ matrix.arch }}" = "aarch64" ]; then
+            sudo apt install -y gcc-aarch64-linux-gnu
+          fi
     
       
 
