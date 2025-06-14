@@ -43,7 +43,7 @@ jobs:
           tar -czvf vaultwarden-${{ matrix.arch }}.tar.gz vaultwarden-${{ matrix.arch }}
 
       - name: Upload Vaultwarden tar file as GitHub Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: vaultwarden-${{ matrix.arch }}
           path: vaultwarden-${{ matrix.arch }}.tar.gz
