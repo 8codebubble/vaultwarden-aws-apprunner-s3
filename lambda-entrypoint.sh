@@ -21,7 +21,7 @@ mkdir -p $DATA_FOLDER
 
 # Restore non-SQLite files from S3
 echo "Restoring non-SQLite files from S3..."
-restore_from_s3 "${DATA_FOLDER}"
+restore_from_s3 "${DATA_FOLDER}" 
 
 # Ensure the data directory is writable
 ls -la ${DATA_FOLDER}
@@ -35,9 +35,6 @@ if [ -z "$RCLONE_PID" ]; then
     echo "Failed to start rclone sync process"
     exit 1
 fi
-# Wait for rclone to start
-echo "Waiting for rclone sync script to start..."
-wait $RCLONE_PID
 
 
 # Restore SQLite database from S3 if available
