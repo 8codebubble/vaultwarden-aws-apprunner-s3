@@ -43,7 +43,7 @@ resource "aws_iam_policy" "vaultwarden_s3_access" {
     Version = "2012-10-17",
     Statement = [{
       Effect   = "Allow",
-      Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+      Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket","s3:DeleteObject"],
       Resource = [
         aws_s3_bucket.vaultwarden_s3.arn,
         "${aws_s3_bucket.vaultwarden_s3.arn}/*"

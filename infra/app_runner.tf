@@ -32,7 +32,7 @@ resource "aws_apprunner_service" "vaultwarden" {
   
   instance_configuration {
     cpu    = "0.25 vCPU"
-    memory = "512 MB"
+    memory = "0.5 GB"
     instance_role_arn = aws_iam_role.apprunner_execution_role.arn     
     
   }
@@ -40,10 +40,10 @@ resource "aws_apprunner_service" "vaultwarden" {
     health_check_configuration {
       protocol            = "HTTP"
       path                = "/alive"
-      interval            = 5    # Check every 5 seconds
+      interval            = 20    # Check every 5 seconds
       timeout             = 2    # Fail if no response within 2 seconds
       healthy_threshold   = 1    # Mark healthy after 1 successful check
-      unhealthy_threshold = 5    # Mark unhealthy after 5 failed checks
+      unhealthy_threshold = 3    # Mark unhealthy after 3 failed checks
     }
 
   # Enable auto-scaling to zero

@@ -1,8 +1,16 @@
 #!/bin/bash
 set -e
 
+source "$(dirname "$0")/rclone_sync.sh" # Load rclone functions
+
 # Sanity check
-pwd
+if [ -z "$DATA_FOLDER" ]; then
+  echo "DATA_FOLDER environment variable is not set. Please set it to the Vaultwarden data directory."
+  exit 1
+fi
+echo "Current working directory:"
+pwd # Print current working directory
+
 ls -la
 
 # AWS Lambda runtime requires initialization
@@ -11,27 +19,25 @@ echo "Starting Vaultwarden Lambda container..."
 # Ensure required directories exist
 mkdir -p $DATA_FOLDER
 
-rclone --version
-# Check if rclone is configured
-if ! rclone listremotes; then
-  echo "Rclone is not configured. Please ensure your rclone configuration is set up correctly."
-  exit 1
-fi
-
 # Restore non-SQLite files from S3
 echo "Restoring non-SQLite files from S3..."
-rclone sync s3remote:vaultwarden-aws-apprunner-s3-bucket/data-backup ${DATA_FOLDER} \
-  --exclude "*.sqlite*" \
-  --exclude "*.sqlite3/"
+restore_from_s3 "${DATA_FOLDER}"
 
 # Ensure the data directory is writable
 ls -la ${DATA_FOLDER}
 
-# Create sync cron job to sync data to S3 every 10 minutes
-echo "Creating cron job for s3 sync"
-#(crontab -l 2>/dev/null; echo "*/10 * * * * rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket --exclude \"*.sqlite*\"") | crontab -
-/rclone_sync.sh &
+# Start the rclone sync process in background
+echo "Starting rclone sync process..."
+run_rclone_sync &
 RCLONE_PID=$!
+# Check if rclone sync process started successfully
+if [ -z "$RCLONE_PID" ]; then
+    echo "Failed to start rclone sync process"
+    exit 1
+fi
+# Wait for rclone to start
+echo "Waiting for rclone sync script to start..."
+wait $RCLONE_PID
 
 
 # Restore SQLite database from S3 if available
@@ -66,10 +72,13 @@ function shutdown() {
   # This ensures that the latest state of the data folder is saved.
   # Note: This will not include the SQLite database file, as it is handled by Litestream.
   kill -SIGTERM $RCLONE_PID
+  # Wait for rclone to finish
+  echo "Waiting for rclone sync script to be stopped..."
   wait $RCLONE_PID
   rclone sync ${DATA_FOLDER} s3remote:vaultwarden-aws-apprunner-s3-bucket/data-backup \
     --exclude "*.sqlite*" \
-    --exclude "*.sqlite3/"
+    --exclude "*.sqlite3/" \
+    --exclude ".db.sqlite3-litestream/"
 
   echo "Stopping Litestream..."
   kill -SIGTERM $LITESTREAM_PID
