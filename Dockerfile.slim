@@ -7,7 +7,7 @@ ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8080
 
 # Install dependencies using apk
-RUN apk add --no-cache tar sqlite curl ca-certificates jq gzip curl unzip
+RUN apk add --no-cache tar curl ca-certificates jq gzip unzip bash
 
 # Install rclone
 RUN curl https://rclone.org/install.sh | bash
