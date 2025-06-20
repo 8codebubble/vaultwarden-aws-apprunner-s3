@@ -36,15 +36,6 @@ RUN litestream version
 # Set working directory
 WORKDIR /
 
-# Copy Vaultwarden binary from latest release
-#COPY vaultwarden /vaultwarden/vaultwarden
-COPY --from=builder /src/vaultwarden/target/release/vaultwarden /vaultwarden
-RUN chmod +x /vaultwarden
-
-# Copy web-vault wesite from latest release
-COPY web-vault /web-vault
-
-
 # Copy Litestream config
 COPY litestream.yml /etc/litestream.yml
 
