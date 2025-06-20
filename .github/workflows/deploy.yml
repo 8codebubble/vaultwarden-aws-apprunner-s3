@@ -51,14 +51,14 @@ jobs:
             - path: ${{ vars.VAULTWARDEN_DATA_FOLDER }}/db.sqlite3
               replicas:
                 - type: s3
-                  bucket: "${{ vars.LITESTREAM_BUCKET }}"
+                  bucket: "${{ vars.S3_BUCKET_NAME }}"
                   path: db.sqlite3
-                  endpoint: "${{ vars.LITESTREAM_ENDPOINT }}"
+                  endpoint: "${{ vars.S3_ENDPOINT }}"
           EOF
 
       - name: Build Docker image
         run: |
-          docker build -t vaultwarden-aws-apprunner-s3 .
+          docker build -f Dockerfile.slim -t vaultwarden-aws-apprunner-s3 .
 
       - name: Tag Image for DockerHub
         run: |
@@ -94,6 +94,34 @@ jobs:
           # Push both tags
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${GIT_SHORT_SHA}
+    
+      - name: Store access key in SSM
+        run: |
+          aws ssm put-parameter \
+            --name "/vaultwarden/s3/access_key_id" \
+            --value "${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --type "SecureString" \
+            --overwrite          
+          aws ssm put-parameter \
+            --name "/vaultwarden/s3/secret_access_key" \
+            --value "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            --type "SecureString" \
+            --overwrite
+          aws ssm put-parameter \
+            --name "/vaultwarden/s3/bucket_name" \
+            --value "${{ vars.S3_BUCKET_NAME }}" \
+            --type "SecureString" \
+            --overwrite
+          aws ssm put-parameter \
+            --name "/vaultwarden/data_folder" \
+            --value "${{ vars.VAULTWARDEN_DATA_FOLDER }}" \
+            --type "SecureString" \
+            --overwrite
+          aws ssm put-parameter \
+            --name "/vaultwarden/admin_token" \
+            --value "${{ secrets.VAULTWARDEN_ADMIN_TOKEN }}" \
+            --type "SecureString" \
+            --overwrite            
 
       - name: Deploy Versioned Image to App Runner
         env:

@@ -1,36 +1,4 @@
-# Builder stage
-FROM amazonlinux:2 as builder
-
-# Update system and install required packages
-RUN yum update -y && \
-    # Install development tools, curl, unzip, and OpenSSL development package
-    yum groupinstall -y "Development Tools" && \
-    yum install -y curl unzip openssl-devel pkgconfig && \
-    yum clean all
-
-# Install Rust using rustup (this will install Rust in /root/.cargo)
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH=/root/.cargo/bin:$PATH
-
-WORKDIR /src
-
-COPY vaultwarden ./vaultwarden/
-
-
-# Build Vaultwarden in release mode
-RUN export VW_ROOT_PATH=$(ls -d ./vaultwarden/dani-garcia-vaultwarden*/ | head -n 1) && \
-    echo "VW_ROOT_PATH = ${VW_ROOT_PATH}" && \
-    cd ${VW_ROOT_PATH} && \
-    echo "Currently in $(pwd)" && \
-    mv * /src/vaultwarden
-
-WORKDIR /src/vaultwarden
-
-RUN cargo build --release --features sqlite
-
-# Use Amazon Linux 2 base image (supports `yum`)
-FROM amazonlinux:2
-
+FROM vaultwarden/server:alpine
 # Set the default value for the data directory to a writable location
 # Setting this in github actions instead #ENV DATA_FOLDER="/tmp/vaultwarden/data"
 
@@ -38,10 +6,8 @@ FROM amazonlinux:2
 ENV ROCKET_ADDRESS=0.0.0.0
 ENV ROCKET_PORT=8080
 
-# Install dependencies using yum
-RUN yum install -y tar sqlite curl ca-certificates jq gzip openssl11-libs curl unzip && yum clean all
-
-
+# Install dependencies using apk
+RUN apk add --no-cache tar sqlite curl ca-certificates jq gzip curl unzip
 
 # Install rclone
 RUN curl https://rclone.org/install.sh | bash

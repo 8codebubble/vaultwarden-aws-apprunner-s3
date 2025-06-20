@@ -11,7 +11,7 @@ fi
 function sync_to_s3() {
     local source_dir="$1"
     echo "Syncing data from ${source_dir} to S3..."
-    rclone sync "${source_dir}" s3remote:vaultwarden-aws-apprunner-s3-bucket/data-backup \
+    rclone sync "${source_dir}" s3remote:${S3_BUCKET_NAME}/data-backup \
         --exclude "*.sqlite*" \
         --exclude "*.sqlite3/" \
         --exclude ".db.sqlite3-litestream/" \
@@ -21,7 +21,7 @@ function sync_to_s3() {
 function restore_from_s3() {
     local dest_dir="$1"
     echo "Restoring non-SQLite files from S3 to ${dest_dir}..."
-    rclone sync s3remote:vaultwarden-aws-apprunner-s3-bucket/data-backup "${dest_dir}" \
+    rclone sync s3remote:${S3_BUCKET_NAME}/data-backup "${dest_dir}" \
         --exclude "*.sqlite*" \
         --exclude "*.sqlite3/" \
         --exclude ".db.sqlite3-litestream/" \

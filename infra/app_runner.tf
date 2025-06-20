@@ -9,14 +9,18 @@ resource "aws_apprunner_service" "vaultwarden" {
           ROCKET_PORT = "8080"
           ROCKET_ADDRESS = "0.0.0.0"
           #DATABASE_URL = "postgres://user:password@db.example.com:5432/vaultwarden"
-          ADMIN_TOKEN = "khjgasdhjgrew"
-          DATA_FOLDER = "/tmp/vaultwarden/data"          
+          #ADMIN_TOKEN = "khjgasdhjgrew"
+          #DATA_FOLDER = "/tmp/vaultwarden/data"
         }
         # Secrets from AWS credentials
         runtime_environment_secrets = {
-          AWS_ACCESS_KEY_ID     = aws_secretsmanager_secret.vaultwarden_s3_user_access_key_id.arn
-          AWS_SECRET_ACCESS_KEY = aws_secretsmanager_secret.vaultwarden_s3_user_secret_access_key.arn
-        }
+          AWS_ACCESS_KEY_ID     = aws_ssm_parameter.vaultwarden_access_key_id.arn
+          AWS_SECRET_ACCESS_KEY = aws_ssm_parameter.vaultwarden_secret_access_key.arn
+          S3_BUCKET_NAME        = aws_ssm_parameter.vaultwarden_bucket_name.arn
+          DATA_FOLDER           = aws_ssm_parameter.vaultwarden_data_folder.arn
+          ADMIN_TOKEN           = aws_ssm_parameter.vaultwarden_admin_token.arn
+          ############# Add more secrets here and define them in app_runner_iam.tf
+          }
 
       }
       image_identifier = "${aws_ecr_repository.vaultwarden_app_runner_repo.repository_url}:latest" #"YOUR_ECR_REPOSITORY_URL:latest"

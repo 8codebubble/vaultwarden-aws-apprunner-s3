@@ -21,7 +21,13 @@ mkdir -p $DATA_FOLDER
 
 # Restore non-SQLite files from S3
 echo "Restoring non-SQLite files from S3..."
-restore_from_s3 "${DATA_FOLDER}" 
+restore_from_s3 "${DATA_FOLDER}" & # Restore non-SQLite files from S3 in background. Run in background to avoid blocking the script(Faster startup)
+RESTORE_PID=$!
+# Check if restore process started successfully
+if [ -z "$RESTORE_PID" ]; then
+    echo "Failed to start restore process"
+    exit 1
+fi
 
 # Ensure the data directory is writable
 ls -la ${DATA_FOLDER}
@@ -49,7 +55,7 @@ litestream replicate -config /etc/litestream.yml &
 
 
 # Start Vaultwarden as a background process (or in the foreground if it supports a graceful shutdown signal)
-/vaultwarden/vaultwarden &
+/vaultwarden &
 VAULTWARDEN_PID=$!
 
 # Function to handle shutdown and final snapshot.
