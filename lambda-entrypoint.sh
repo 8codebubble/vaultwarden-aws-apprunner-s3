@@ -21,12 +21,11 @@ mkdir -p $DATA_FOLDER
 
 # Restore non-SQLite files from S3
 echo "Restoring non-SQLite files from S3..."
-restore_from_s3 "${DATA_FOLDER}" & # Restore non-SQLite files from S3 in background. Run in background to avoid blocking the script(Faster startup)
-RESTORE_PID=$!
-# Check if restore process started successfully
-if [ -z "$RESTORE_PID" ]; then
-    echo "Failed to start restore process"
-    exit 1
+restore_from_s3 "${DATA_FOLDER}" # This will restore the data if it exists, or do nothing if it doesn't.
+# Check if the restore was successful
+if [ $? -ne 0 ]; then
+  echo "Failed to restore non-SQLite files from S3"
+  exit 1
 fi
 
 # Ensure the data directory is writable
