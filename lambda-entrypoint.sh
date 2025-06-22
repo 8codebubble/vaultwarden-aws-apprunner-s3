@@ -10,7 +10,6 @@ if [ -z "$DATA_FOLDER" ]; then
 fi
 echo "Current working directory:"
 pwd # Print current working directory
-
 ls -la
 
 # AWS Lambda runtime requires initialization
@@ -40,7 +39,6 @@ if [ -z "$RCLONE_PID" ]; then
     echo "Failed to start rclone sync process"
     exit 1
 fi
-
 
 # Restore SQLite database from S3 if available
 echo "Restoring SQLite database from S3..."

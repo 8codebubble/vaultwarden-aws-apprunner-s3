@@ -15,6 +15,7 @@ function sync_to_s3() {
         --exclude "*.sqlite*" \
         --exclude "*.sqlite3/" \
         --exclude ".db.sqlite3-litestream/" \
+        --exclude "tmp/" \
         --verbose
 }
 
@@ -25,6 +26,7 @@ function restore_from_s3() {
         --exclude "*.sqlite*" \
         --exclude "*.sqlite3/" \
         --exclude ".db.sqlite3-litestream/" \
+        --exclude "tmp/" \
         --verbose
 }
 
