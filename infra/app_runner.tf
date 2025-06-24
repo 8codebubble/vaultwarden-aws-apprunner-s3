@@ -7,8 +7,7 @@ resource "aws_apprunner_service" "vaultwarden" {
         port = "8080"  # Port that the application listens on
         runtime_environment_variables = {
           ROCKET_PORT = "8080"
-          ROCKET_ADDRESS = "0.0.0.0"
-          hmm  = "test"
+          ROCKET_ADDRESS = "0.0.0.0"         
           #DATABASE_URL = "postgres://user:password@db.example.com:5432/vaultwarden"
           #ADMIN_TOKEN = "khjgasdhjgrew"
           #DATA_FOLDER = "/tmp/vaultwarden/data"
