@@ -8,6 +8,7 @@ resource "aws_apprunner_service" "vaultwarden" {
         runtime_environment_variables = {
           ROCKET_PORT = "8080"
           ROCKET_ADDRESS = "0.0.0.0"
+          hmm  = "test"
           #DATABASE_URL = "postgres://user:password@db.example.com:5432/vaultwarden"
           #ADMIN_TOKEN = "khjgasdhjgrew"
           #DATA_FOLDER = "/tmp/vaultwarden/data"
@@ -20,7 +21,7 @@ resource "aws_apprunner_service" "vaultwarden" {
           DATA_FOLDER           = aws_ssm_parameter.vaultwarden_data_folder.arn
           ADMIN_TOKEN           = aws_ssm_parameter.vaultwarden_admin_token.arn
           S3_ENDPOINT           = aws_ssm_parameter.vaultwarden_s3_endpoint.arn
-          AWS_REGION             = aws_ssm_parameter.vaultwarden_aws_region.arn
+          AWS_REGION            = aws_ssm_parameter.vaultwarden_aws_region.arn
           ############# Add more secrets here and define them in app_runner_iam.tf
           }
 
