@@ -42,20 +42,7 @@ jobs:
           unzip vaultwarden.zip -d vaultwarden
           pwd
           ls -la
-          ls ./vaultwarden/ -la
-
-      - name: Generate Litestream configuration
-        run: |
-          cat <<EOF > litestream.yml
-          dbs:
-            - path: \$\{DATA_FOLDER\/db.sqlite3
-              replicas:
-                - type: s3
-                  bucket: \${S3_BUCKET_NAME}
-                  path: db.sqlite3
-                  endpoint: \${S3_ENDPOINT}
-          EOF
-
+          ls ./vaultwarden/ -la      
       - name: Build Docker image
         run: |
           docker build -f Dockerfile.slim -t vaultwarden-aws-apprunner-s3 .
