@@ -11,6 +11,7 @@ fi
 echo "Current working directory:"
 pwd # Print current working directory
 ls -la
+cat /etc/litestream.yml # Print Litestream configuration for debugging
 
 # AWS Lambda runtime requires initialization
 echo "Starting Vaultwarden Lambda container..."

@@ -122,6 +122,7 @@ resource "aws_ssm_parameter" "vaultwarden_access_key_id" {
   type        = "SecureString"
   value       = aws_iam_access_key.vaultwarden_keys.id
   description = "Vaultwarden S3 user access key ID"
+  overwrite    = true  
 }
 # Create SSM Parameter for Vaultwarden S3 Access Key ID
 resource "aws_ssm_parameter" "vaultwarden_secret_access_key" {
@@ -129,18 +130,21 @@ resource "aws_ssm_parameter" "vaultwarden_secret_access_key" {
   type        = "SecureString"
   value       = aws_iam_access_key.vaultwarden_keys.secret
   description = "Vaultwarden S3 user secret access key"
+  overwrite    = true
 }
 resource "aws_ssm_parameter" "vaultwarden_bucket_name" {
   name        = "/vaultwarden/s3/bucket_name"
   type        = "SecureString"
   value       = aws_s3_bucket.vaultwarden_s3.bucket # Use the bucket name from the S3 bucket resource Located in s3.tf
   description = "Vaultwarden S3 bucket name"
+  overwrite    = true
 }
 resource "aws_ssm_parameter" "vaultwarden_data_folder" {
   name        = "/vaultwarden/data_folder"
   type        = "SecureString"
   value       = "/tmp/vaultwarden/data" # This is the data folder used by Vaultwarden in App Runner
   description = "Vaultwarden data folder"
+  overwrite    = true
 }
 
 resource "aws_ssm_parameter" "vaultwarden_admin_token" {
@@ -148,19 +152,21 @@ resource "aws_ssm_parameter" "vaultwarden_admin_token" {
   type        = "SecureString"
   value       = "your_admin_token_value" #this will be replacesd in the github action that pull the secret from the repository secrets
   description = "Vaultwarden admin token"
+  overwrite    = true
 }
-
-resource "aws_ssm_parameter" "vaultwarden_aws_region" {
+resource "aws_ssm_parameter" "vaultwarden_aws_region" {  
   name        = "/vaultwarden/aws_region"
   type        = "String"
-  value       = provider.aws.region # Use the region from the AWS provider
+  value       = var.aws_region # Use the region from the AWS provider
   description = "Vaultwarden S3 bucket region"
+  overwrite    = true
 }
 resource "aws_ssm_parameter" "vaultwarden_s3_endpoint" {
   name        = "/vaultwarden/s3/endpoint"
   type        = "String"
-  value       = "s3.${vaultwarden_s3_region.value}.amazonaws.com"
+  value       = "s3.${var.aws_region}.amazonaws.com"
   description = "Vaultwarden S3 bucket endpoint"
+  overwrite    = true
 }
 
 
