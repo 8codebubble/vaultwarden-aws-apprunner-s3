@@ -48,12 +48,12 @@ jobs:
         run: |
           cat <<EOF > litestream.yml
           dbs:
-            - path: \$\{DATA_FOLDER\}/db.sqlite3
+            - path: \$\{DATA_FOLDER\/db.sqlite3
               replicas:
                 - type: s3
-                  bucket: \$\{S3_BUCKET_NAME\}
+                  bucket: \${S3_BUCKET_NAME}
                   path: db.sqlite3
-                  endpoint: \$\{S3_ENDPOINT\}
+                  endpoint: \${S3_ENDPOINT}
           EOF
 
       - name: Build Docker image
