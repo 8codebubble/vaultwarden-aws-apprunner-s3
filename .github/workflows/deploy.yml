@@ -48,12 +48,12 @@ jobs:
         run: |
           cat <<EOF > litestream.yml
           dbs:
-            - path: ${{ vars.VAULTWARDEN_DATA_FOLDER }}/db.sqlite3
+            - path: ${DATA_FOLDER}/db.sqlite3
               replicas:
                 - type: s3
-                  bucket: "${{ vars.S3_BUCKET_NAME }}"
+                  bucket: ${S3_BUCKET_NAME}
                   path: db.sqlite3
-                  endpoint: "${{ vars.S3_ENDPOINT }}"
+                  endpoint: ${S3_ENDPOINT}
           EOF
 
       - name: Build Docker image
@@ -121,7 +121,17 @@ jobs:
             --name "/vaultwarden/admin_token" \
             --value "${{ secrets.VAULTWARDEN_ADMIN_TOKEN }}" \
             --type "SecureString" \
-            --overwrite            
+            --overwrite
+          aws ssm put-parameter \
+            --name "/vaultwarden/aws_region" \
+            --value "${{ secrets.AWS_REGION }}" \
+            --type "SecureString" \
+            --overwrite 
+          aws ssm put-parameter \
+            --name "/vaultwarden/s3/s3_enpoint" \
+            --value "${{ vars.S3_ENDPOINT }}" \
+            --type "SecureString" \
+            --overwrite          
 
       - name: Deploy Versioned Image to App Runner
         env:

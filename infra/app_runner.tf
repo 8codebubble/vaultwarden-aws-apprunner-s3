@@ -19,6 +19,8 @@ resource "aws_apprunner_service" "vaultwarden" {
           S3_BUCKET_NAME        = aws_ssm_parameter.vaultwarden_bucket_name.arn
           DATA_FOLDER           = aws_ssm_parameter.vaultwarden_data_folder.arn
           ADMIN_TOKEN           = aws_ssm_parameter.vaultwarden_admin_token.arn
+          S3_ENDPOINT           = aws_ssm_parameter.vaultwarden_s3_endpoint.arn
+          AWS_REGION             = aws_ssm_parameter.vaultwarden_aws_region.arn
           ############# Add more secrets here and define them in app_runner_iam.tf
           }
 
@@ -37,7 +39,7 @@ resource "aws_apprunner_service" "vaultwarden" {
   instance_configuration {
     cpu    = "0.25 vCPU"
     memory = "0.5 GB"
-    instance_role_arn = aws_iam_role.apprunner_execution_role.arn     
+    instance_role_arn = aws_iam_role.apprunner_execution_role.arn
     
   }
   # Define health check configuration    

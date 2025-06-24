@@ -149,3 +149,19 @@ resource "aws_ssm_parameter" "vaultwarden_admin_token" {
   value       = "your_admin_token_value" #this will be replacesd in the github action that pull the secret from the repository secrets
   description = "Vaultwarden admin token"
 }
+
+resource "aws_ssm_parameter" "vaultwarden_aws_region" {
+  name        = "/vaultwarden/aws_region"
+  type        = "String"
+  value       = provider.aws.region # Use the region from the AWS provider
+  description = "Vaultwarden S3 bucket region"
+}
+resource "aws_ssm_parameter" "vaultwarden_s3_endpoint" {
+  name        = "/vaultwarden/s3/endpoint"
+  type        = "String"
+  value       = "s3.${vaultwarden_s3_region.value}.amazonaws.com"
+  description = "Vaultwarden S3 bucket endpoint"
+}
+
+
+
